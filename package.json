@@ -1,0 +1,14 @@
+{
+  "name": "pdf-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@sparticuz/chromium": "^110.0.0",
+    "puppeteer-core": "^21.0.0",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.3"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
