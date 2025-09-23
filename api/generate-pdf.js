@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 
     // Launch Chromium serverless
    const executablePath = await chromium.executablePath(
-  "https://github.com/Sparticuz/chromium/releases/download/v133.0.0/chromium-v131.0.1-pack.tar"
+  "https://github.com/Sparticuz/chromium/releases/download/v138.0.2/chromium-v138.0.2-pack.x64.tar"
 );
 
 const browser = await puppeteerCore.launch({
