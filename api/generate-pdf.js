@@ -2,6 +2,8 @@ import puppeteerCore from 'puppeteer-core';
 import chromium from "@sparticuz/chromium-min";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import QRCode from "qrcode";
+import path from "path";
+import fs from "fs";
 
 function wrapText(text, maxWidth, font, fontSize) {
   const words = text.split(" ");
@@ -86,11 +88,10 @@ const browser = await puppeteerCore.launch({
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    const imageUrl = `${req.headers.origin}/watermark.png`;
-    const resp = await fetch(imageUrl);
-    const arrayBuffer = await resp.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const watermarkImg = await pdfDoc.embedPng(buffer);
+    const watermarkPath = path.join(process.cwd(), "public", "watermark.png");
+    const watermarkBytes = fs.readFileSync(watermarkPath);
+
+    const watermarkImg = await pdfDoc.embedPng(watermarkBytes);
 
     // QR Code
     const qrCodeBuffer = await QRCode.toBuffer(code, {
