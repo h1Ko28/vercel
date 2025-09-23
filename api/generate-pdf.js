@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import puppeteerCore from "puppeteer-core";
 import chromium from "@sparticuz/chromium-min";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
