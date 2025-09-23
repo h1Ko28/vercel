@@ -86,10 +86,10 @@ const browser = await puppeteerCore.launch({
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    // Watermark nếu có
-    const resp = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/resources/watermark.png`);
+    const resp = await fetch("https://iwjtpmzjlzoggj53.public.blob.vercel-storage.com/watermark.jpg");
     const bytes = await resp.arrayBuffer();
     const watermarkImg = await pdfDoc.embedPng(bytes);
+
 
 
     // QR Code
