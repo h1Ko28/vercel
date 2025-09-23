@@ -4,7 +4,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import QRCode from "qrcode";
 import fs from "fs";
 import path from "path";
-import watermarkPath from "../resources/watermark.png";
+import watermarkPath from "../resources/watermark.svg";
 
 function wrapText(text, maxWidth, font, fontSize) {
   const words = text.split(" ");
