@@ -7,8 +7,5 @@
     "puppeteer-core": "^24.4.0",
     "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.3"
-  },
-  "engines": {
-    "node": ">=18.x"
   }
 }

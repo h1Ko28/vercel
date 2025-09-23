@@ -1,5 +1,6 @@
+import puppeteer from "puppeteer";
+import puppeteerCore from "puppeteer-core";
 import chromium from "@sparticuz/chromium-min";
-import puppeteer from "puppeteer-core";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import QRCode from "qrcode";
 
@@ -37,11 +38,12 @@ export default async function handler(req, res) {
     } = req.body || {};
 
     // Launch Chromium serverless
-    browser = await puppeteer.launch({
-      args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+   const executablePath = await chromium.executablePath();
+      browser = await puppeteerCore.launch({
+        executablePath,
+        args: chromium.args,
+        headless: chromium.headless,
+        defaultViewport: chromium.defaultViewport,
     });
 
     const page = await browser.newPage();
