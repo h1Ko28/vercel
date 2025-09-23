@@ -2,9 +2,6 @@ import puppeteerCore from 'puppeteer-core';
 import chromium from "@sparticuz/chromium-min";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import QRCode from "qrcode";
-import fs from "fs";
-import path from "path";
-import watermarkPath from "../resources/watermark.svg";
 
 function wrapText(text, maxWidth, font, fontSize) {
   const words = text.split(" ");
@@ -90,14 +87,9 @@ const browser = await puppeteerCore.launch({
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     // Watermark nếu có
-    let watermarkImg = null;
-    try {
-      const absPath = path.resolve(watermarkPath); // path string do bundler trả về
-      const watermarkBytes = fs.readFileSync(absPath); // đọc binary
-      watermarkImg = await pdfDoc.embedPng(watermarkBytes);
-    } catch (err) {
-      console.warn("⚠️ Không load được watermark:", err.message);
-    }
+    const resp = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/resources/watermark.png`);
+    const bytes = await resp.arrayBuffer();
+    const watermarkImg = await pdfDoc.embedPng(bytes);
 
 
     // QR Code
