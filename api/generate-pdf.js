@@ -1,15 +1,12 @@
-import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer-core';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import QRCode from 'qrcode';
-
-// Configure chromium for serverless environment
-chromium.setGraphicsMode = false;
+import chromium from "@sparticuz/chromium-min";
+import puppeteer from "puppeteer-core";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import QRCode from "qrcode";
 
 function wrapText(text, maxWidth, font, fontSize) {
-  const words = text.split(' ');
+  const words = text.split(" ");
   const lines = [];
-  let currentLine = '';
+  let currentLine = "";
 
   for (let word of words) {
     const testLine = currentLine ? `${currentLine} ${word}` : word;
@@ -25,44 +22,29 @@ function wrapText(text, maxWidth, font, fontSize) {
 }
 
 export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   let browser = null;
-  
+
   try {
     const {
-      html = '<h1>Hello World</h1>',
+      html = "<h1>Hello World</h1>",
       watermarkUrl,
-      code = 'https://example.com',
-      codeName = 'Sample Code'
+      code = "https://example.com",
+      codeName = "Sample Code",
     } = req.body || {};
 
-    // Kiểm tra method
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method not allowed' });
-    }
-
-    // Khởi tạo browser với cấu hình cho Vercel
+    // Launch Chromium serverless
     browser = await puppeteer.launch({
-      args: [
-        ...chromium.args,
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu'
-      ],
+      args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
       headless: chromium.headless,
     });
 
     const page = await browser.newPage();
-    
-    // Set timeout để tránh lỗi
-    page.setDefaultTimeout(30000);
-    page.setDefaultNavigationTimeout(30000);
 
     const pageCss = `
       <style>
@@ -71,7 +53,6 @@ export default async function handler(req, res) {
         body { margin: 0; font-family: Arial, sans-serif; }
         .avoid-break, img, table { break-inside: avoid; page-break-inside: avoid; }
         .keep-together { break-inside: avoid; page-break-inside: avoid; }
-        * { box-sizing: border-box; }
       </style>
     `;
 
@@ -79,18 +60,17 @@ export default async function handler(req, res) {
     if (/<head[\s>]/i.test(html)) {
       htmlWithCss = html.replace(/<head[^>]*>/i, (m) => m + pageCss);
     } else if (/<html[\s>]/i.test(html)) {
-      htmlWithCss = html.replace(/<html[^>]*>/i, (m) => m + `<head>${pageCss}</head>`);
+      htmlWithCss = html.replace(
+        /<html[^>]*>/i,
+        (m) => m + `<head>${pageCss}</head>`
+      );
     } else {
       htmlWithCss = `<!doctype html><html><head>${pageCss}</head><body>${html}</body></html>`;
     }
 
-    await page.setContent(htmlWithCss, { 
-      waitUntil: 'networkidle0',
-      timeout: 30000 
-    });
-
+    await page.setContent(htmlWithCss, { waitUntil: "networkidle0" });
     const pdfBuffer = await page.pdf({
-      format: 'A4',
+      format: "A4",
       printBackground: true,
       preferCSSPageSize: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -98,10 +78,11 @@ export default async function handler(req, res) {
 
     await browser.close();
 
-    // Xử lý PDF với pdf-lib
+    // Load PDF vào pdf-lib
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
+    // Watermark nếu có
     let watermarkImg = null;
     if (watermarkUrl) {
       try {
@@ -109,17 +90,15 @@ export default async function handler(req, res) {
         const watermarkBytes = await watermarkResponse.arrayBuffer();
         watermarkImg = await pdfDoc.embedPng(watermarkBytes);
       } catch (error) {
-        console.warn('Failed to load watermark image:', error.message);
+        console.warn("⚠️ Không load được watermark:", error.message);
       }
     }
 
+    // QR Code
     const qrCodeBuffer = await QRCode.toBuffer(code, {
       width: 200,
       margin: 1,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      }
+      color: { dark: "#000000", light: "#FFFFFF" },
     });
     const qrImg = await pdfDoc.embedPng(qrCodeBuffer);
 
@@ -130,34 +109,27 @@ export default async function handler(req, res) {
     const qrOpacity = 0.7;
     const textOpacity = 0.7;
 
-    const pages = pdfDoc.getPages();
-    for (let i = 0; i < pages.length; i++) {
-      const page = pages[i];
-      const { width, height } = page.getSize();
+    pdfDoc.getPages().forEach((p) => {
+      const { width, height } = p.getSize();
 
-      // Vẽ watermark (nếu có)
+      // Watermark giữa trang
       if (watermarkImg) {
-        const scale = Math.min(
-          (width * 0.6) / watermarkImg.width,
-          (height * 0.6) / watermarkImg.height
-        );
-        const scaledWidth = watermarkImg.width * scale;
-        const scaledHeight = watermarkImg.height * scale;
-        
-        page.drawImage(watermarkImg, {
-          x: (width - scaledWidth) / 2,
-          y: (height - scaledHeight) / 2,
-          width: scaledWidth,
-          height: scaledHeight,
+        const scaleFactor = (width * 0.5) / watermarkImg.width;
+        const scaled = watermarkImg.scale(scaleFactor);
+
+        p.drawImage(watermarkImg, {
+          x: (width - scaled.width) / 2,
+          y: (height - scaled.height) / 2,
+          width: scaled.width,
+          height: scaled.height,
           opacity: watermarkOpacity,
         });
       }
 
-      // Vẽ QR code ở góc dưới bên phải
+      // QR code
       const qrX = width - qrSize - margin;
       const qrY = margin;
-
-      page.drawImage(qrImg, {
+      p.drawImage(qrImg, {
         x: qrX,
         y: qrY,
         width: qrSize,
@@ -165,49 +137,30 @@ export default async function handler(req, res) {
         opacity: qrOpacity,
       });
 
-      // Vẽ text bên dưới QR code
+      // Text dưới QR
+      const lines = wrapText(codeName, qrSize, font, fontSize);
       const textY = qrY + qrSize + 2;
-      const maxTextWidth = qrSize;
-
-      const lines = wrapText(codeName, maxTextWidth, font, fontSize);
-      
-      for (let j = 0; j < lines.length; j++) {
-        const line = lines[j];
+      lines.forEach((line, idx) => {
         const textWidth = font.widthOfTextAtSize(line, fontSize);
         const textX = qrX + (qrSize - textWidth) / 2;
-        
-        page.drawText(line, {
+        p.drawText(line, {
           x: textX,
-          y: textY - (j * (fontSize + 1)),
+          y: textY - idx * (fontSize + 1),
           size: fontSize,
-          font: font,
+          font,
           color: rgb(0, 0, 0),
           opacity: textOpacity,
         });
-      }
-    }
+      });
+    });
 
     const pdfBytes = await pdfDoc.save();
-    const base64Pdf = Buffer.from(pdfBytes).toString('base64');
+    const base64Pdf = Buffer.from(pdfBytes).toString("base64");
 
-    res.status(200).json({ 
-      success: true,
-      pdfBase64: base64Pdf,
-      pages: pdfDoc.getPageCount()
-    });
-
+    res.status(200).json({ success: true, pdfBase64: base64Pdf });
   } catch (err) {
-    console.error('❌ Error generating PDF:', err);
-    
-    // Đảm bảo đóng browser nếu có lỗi
-    if (browser) {
-      await browser.close();
-    }
-    
-    res.status(500).json({ 
-      error: 'Failed to generate PDF', 
-      details: err.message,
-      suggestion: 'Check the HTML content and try again' 
-    });
+    console.error("❌ Error:", err);
+    if (browser) await browser.close();
+    res.status(500).json({ error: err.message });
   }
 }
