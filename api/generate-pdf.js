@@ -86,9 +86,9 @@ const browser = await puppeteerCore.launch({
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    const resp = await fetch("https://iwjtpmzjlzoggj53.public.blob.vercel-storage.com/watermark.png");
-    const buffer = Buffer.from(await resp.arrayBuffer());
-    const watermarkImg = await pdfDoc.embedPng(buffer);
+    const imageUrl = '/watermark.png';
+    const bytes = await imageUrl.arrayBuffer();
+    const watermarkImg = await pdfDoc.embedPng(bytes);
 
 
 
