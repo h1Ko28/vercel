@@ -4,6 +4,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import QRCode from "qrcode";
 import fs from "fs";
 import path from "path";
+import watermarkPath from "../resources/watermark.png";
 
 function wrapText(text, maxWidth, font, fontSize) {
   const words = text.split(" ");
@@ -90,18 +91,12 @@ const browser = await puppeteerCore.launch({
 
     // Watermark nếu có
     let watermarkImg = null;
-
     try {
-      // Lấy đường dẫn tuyệt đối tới watermark
-      const watermarkPath = path.resolve(process.cwd(), "resources/watermark.svg");
-
-      // Đọc file vào buffer
-      const watermarkBytes = fs.readFileSync(watermarkPath);
-
-      // Embed vào pdf-lib
+      const absPath = path.resolve(watermarkPath); // path string do bundler trả về
+      const watermarkBytes = fs.readFileSync(absPath); // đọc binary
       watermarkImg = await pdfDoc.embedPng(watermarkBytes);
-    } catch (error) {
-      console.warn("⚠️ Không load được watermark:", error.message);
+    } catch (err) {
+      console.warn("⚠️ Không load được watermark:", err.message);
     }
 
 
@@ -115,10 +110,10 @@ const browser = await puppeteerCore.launch({
 
     const qrSize = 40;
     const fontSize = 6;
-    const margin = 10;
+    const margin = 5;
     const watermarkOpacity = 0.1;
-    const qrOpacity = 0.7;
-    const textOpacity = 0.7;
+    const qrOpacity = 0.5;
+    const textOpacity = 0.5;
 
     pdfDoc.getPages().forEach((p) => {
       const { width, height } = p.getSize();
@@ -139,7 +134,7 @@ const browser = await puppeteerCore.launch({
 
       // QR code
       const qrX = width - qrSize - margin;
-      const qrY = margin;
+      const qrY = height - qrSize - margin;
       p.drawImage(qrImg, {
         x: qrX,
         y: qrY,
@@ -150,18 +145,19 @@ const browser = await puppeteerCore.launch({
 
       // Text dưới QR
       const lines = wrapText(codeName, qrSize, font, fontSize);
-      const textY = qrY + qrSize + 2;
+      const textY = qrY - 12;
       lines.forEach((line, idx) => {
         const textWidth = font.widthOfTextAtSize(line, fontSize);
         const textX = qrX + (qrSize - textWidth) / 2;
         p.drawText(line, {
           x: textX,
-          y: textY - idx * (fontSize + 1),
+          y: textY + 10,
           size: fontSize,
           font,
           color: rgb(0, 0, 0),
           opacity: textOpacity,
         });
+        textY -= fontSize + 2;
       });
     });
 
