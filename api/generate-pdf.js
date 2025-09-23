@@ -88,10 +88,10 @@ const browser = await puppeteerCore.launch({
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    const watermarkPath = path.join(process.cwd(), "public", "watermark.png");
-    const watermarkBytes = fs.readFileSync(watermarkPath);
 
-    const watermarkImg = await pdfDoc.embedPng(watermarkBytes);
+    const watermarkPath = path.join(process.cwd(), "public", "watermark.png");
+    const watermarkImg = await pdfDoc.embedPng(fs.readFileSync(watermarkPath));
+
 
     // QR Code
     const qrCodeBuffer = await QRCode.toBuffer(code, {
