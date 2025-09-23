@@ -86,7 +86,7 @@ const browser = await puppeteerCore.launch({
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    const imageUrl = '/watermark.png';
+    const imageUrl = `${req.headers.origin}/watermark.png`;
     const resp = await fetch(imageUrl);
     const arrayBuffer = await resp.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
