@@ -2,6 +2,8 @@ import puppeteerCore from 'puppeteer-core';
 import chromium from "@sparticuz/chromium-min";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import QRCode from "qrcode";
+import fs from "fs";
+import path from "path";
 
 function wrapText(text, maxWidth, font, fontSize) {
   const words = text.split(" ");
@@ -88,15 +90,20 @@ const browser = await puppeteerCore.launch({
 
     // Watermark nếu có
     let watermarkImg = null;
-    if (watermarkUrl) {
-      try {
-        const watermarkResponse = await fetch(watermarkUrl);
-        const watermarkBytes = await watermarkResponse.arrayBuffer();
-        watermarkImg = await pdfDoc.embedPng(watermarkBytes);
-      } catch (error) {
-        console.warn("⚠️ Không load được watermark:", error.message);
-      }
+
+    try {
+      // Lấy đường dẫn tuyệt đối tới watermark
+      const watermarkPath = path.resolve(process.cwd(), "resources/watermark.svg");
+
+      // Đọc file vào buffer
+      const watermarkBytes = fs.readFileSync(watermarkPath);
+
+      // Embed vào pdf-lib
+      watermarkImg = await pdfDoc.embedPng(watermarkBytes);
+    } catch (error) {
+      console.warn("⚠️ Không load được watermark:", error.message);
     }
+
 
     // QR Code
     const qrCodeBuffer = await QRCode.toBuffer(code, {
