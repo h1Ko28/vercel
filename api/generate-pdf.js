@@ -92,8 +92,8 @@ const browser = await puppeteerCore.launch({
     const bytes = await resp.arrayBuffer();
 
     // Chuyển ArrayBuffer → Uint8Array
-    const uint8Array = new Uint8Array(bytes);
-    const watermarkImg = await pdfDoc.embedPng(uint8Array);
+    const buffer = Buffer.from(bytes);
+    const watermarkImg = await pdfDoc.embedPng(buffer);
 
 
     // QR Code
