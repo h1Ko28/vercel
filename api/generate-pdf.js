@@ -138,7 +138,7 @@ export default async function handler(req, res) {
 
       // Text dưới QR
       const lines = wrapText(codeName, qrSize, font, fontSize);
-      const textY = qrY - 12;
+      let textY = qrY - 12;
       lines.forEach((line, idx) => {
         const textWidth = font.widthOfTextAtSize(line, fontSize);
         const textX = qrX + (qrSize - textWidth) / 2;
