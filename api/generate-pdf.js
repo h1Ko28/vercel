@@ -88,13 +88,12 @@ const browser = await puppeteerCore.launch({
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    const resp = await fetch("https://iwjtpmzjlzoggj53.public.blob.vercel-storage.com/watermark.png");
-    const contentType = resp.headers.get('content-type');
-    if (contentType !== 'image/png') {
-        console.warn('Expected PNG image, got:', contentType);
-    }
+    const resp = await fetch("https://your-project.vercel.app/resources/watermark.png");
     const bytes = await resp.arrayBuffer();
-    const watermarkImg = await pdfDoc.embedPng(bytes);
+
+    // Chuyển ArrayBuffer → Uint8Array
+    const uint8Array = new Uint8Array(bytes);
+    const watermarkImg = await pdfDoc.embedPng(uint8Array);
 
 
     // QR Code
