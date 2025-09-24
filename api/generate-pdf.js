@@ -88,7 +88,9 @@ const browser = await puppeteerCore.launch({
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    const watermarkImg = await pdfDoc.embedPng('blob:chrome-untrusted://image-magnify/14c1958e-1c0a-4b9d-beab-1a543301d115');
+    const url = 'https://iwjtpmzjlzoggj53.public.blob.vercel-storage.com/watermark.png'
+    const arrayBuffer = await fetch(url).then(res => res.arrayBuffer())
+    const watermarkImg = await pdfDoc.embedPng(arrayBuffer);
 
 
     // QR Code
