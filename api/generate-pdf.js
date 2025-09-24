@@ -40,15 +40,15 @@ export default async function handler(req, res) {
 
     // Launch Chromium serverless
    const executablePath = await chromium.executablePath(
-  "https://github.com/Sparticuz/chromium/releases/download/v138.0.2/chromium-v138.0.2-pack.x64.tar"
-);
+    "https://github.com/Sparticuz/chromium/releases/download/v138.0.2/chromium-v138.0.2-pack.x64.tar"
+    );
 
-const browser = await puppeteerCore.launch({
-  args: chromium.args,
-  defaultViewport: chromium.defaultViewport,
-  executablePath,
-  headless: chromium.headless,
-});
+    browser = await puppeteerCore.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      headless: chromium.headless,
+    });
 
     const page = await browser.newPage();
 
@@ -88,9 +88,9 @@ const browser = await puppeteerCore.launch({
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    const url = 'https://iwjtpmzjlzoggj53.public.blob.vercel-storage.com/watermark.png'
+    const url = 'https://vercel-dun-alpha.vercel.app/watermark.png'
     const arrayBuffer = await fetch(url).then(res => res.arrayBuffer())
-    const watermarkImg = await pdfDoc.embedPng(arrayBuffer);
+    const watermarkImg = await pdfDoc.embedJpg(arrayBuffer);
 
 
     // QR Code
