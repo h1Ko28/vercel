@@ -88,8 +88,8 @@ export default async function handler(req, res) {
     const pdfDoc = await PDFDocument.load(pdfBuffer);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    //const url = 'https://vercel-dun-alpha.vercel.app/watermark.png'
-    const url = 'https://vercel-dun-alpha.vercel.app/baya.jpg'
+    const url = 'https://vercel-dun-alpha.vercel.app/watermark.png'
+    //const url = 'https://vercel-dun-alpha.vercel.app/baya.jpg'
     const arrayBuffer = await fetch(url).then(res => res.arrayBuffer())
     const watermarkImg = await pdfDoc.embedJpg(arrayBuffer);
 
